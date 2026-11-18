@@ -1,0 +1,16 @@
+{
+  "name": "white-wing-tracker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "test": "node tests/smoke.mjs",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@vercel/blob": "2.8.1"
+  },
+  "devDependencies": {
+    "jsdom": "24.1.0"
+  }
+}

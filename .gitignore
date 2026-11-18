@@ -1,0 +1,7 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.vercel/*
+!.vercel/project.json
+.DS_Store

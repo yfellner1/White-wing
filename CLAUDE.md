@@ -13,6 +13,7 @@ Live: https://white-wing-tracker.vercel.app (password protected)
 - There's no framework and no build step. `index.html` is the whole front end: vanilla JS, inline CSS, Atkinson Hyperlegible font.
 - Vercel Node serverless functions live in `api/`, written as ES modules (`"type":"module"`).
 - Storage is Vercel Blob (private store `white-wing-tracker-data`, id `store_WSvCr22xbIvYLErZ`, iad1). **Every record lives in one JSON blob, `data/jobs.json`.**
+- The White Wing logo is `logo.png` (230×36, transparent), shown at 200px wide in the header and on the sign-in card. In dark mode it gets a light backing because its letters are dark. A larger PNG or an SVG would look sharper on retina screens.
 - Brand colors: navy `#2C3A93`, lime `#ADD41A`, cyan `#63CCED`. The UI uses softened versions (`--navy #4A58A6`, `--lime #C9E26A`, `--cyan #8FD6EE`) plus light tints (`--sel`, `--soft-lime`, `--soft-cyan`). Selected buttons use the light `--sel` tint, not a solid navy fill. Light and dark tokens are on `:root`.
 
 ## Files

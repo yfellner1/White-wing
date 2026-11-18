@@ -149,6 +149,8 @@ legend::before{content:"";width:14px;height:5px;border-radius:3px;background:var
 .field label{display:block;font-size:.88rem;color:var(--muted);margin-bottom:5px}
 .field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 .field textarea{min-height:76px;resize:vertical}
+.field a.quick{display:inline-block;margin-top:6px;font-size:.88rem;font-weight:700;color:var(--accent)}
+.field a.quick[hidden]{display:none}
 .field .hint{font-size:.8rem;color:var(--muted);margin-top:4px}
 .log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto}
 .log li{font-size:.9rem;padding:8px 12px;background:var(--surface-2);border-radius:8px}
@@ -163,6 +165,9 @@ legend::before{content:"";width:14px;height:5px;border-radius:3px;background:var
 .gmsg{margin:0;color:var(--bad);font-size:.9rem;min-height:1.2em}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
+.toast.has-act{display:flex;white-space:nowrap;align-items:center;gap:14px;padding:8px 8px 8px 20px;font-size:1.05rem}
+.toast.has-act.show{pointer-events:auto}
+.toast-act{border:0;border-radius:999px;background:var(--lime);color:#1B2150;font-weight:700;font-size:1.05rem;padding:12px 20px;min-height:48px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 
 /* ===== Area switch (Tasks vs Leads & orders) ===== */
@@ -341,8 +346,8 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
         <div class="grid">
           <div class="field full"><label for="f-cust">Business name</label><input id="f-cust" data-k="customer" list="custList" autocomplete="off" required><datalist id="custList"></datalist><div class="hint">Pick an existing customer to fill in their contact details.</div></div>
           <div class="field"><label for="f-contact">Contact person</label><input id="f-contact" data-k="contact"></div>
-          <div class="field"><label for="f-phone">Phone</label><input id="f-phone" data-k="phone" type="tel"></div>
-          <div class="field"><label for="f-email">Email</label><input id="f-email" data-k="email" type="email"></div>
+          <div class="field"><label for="f-phone">Phone</label><input id="f-phone" data-k="phone" type="tel"><a class="quick" id="callLink" hidden>📞 Call</a></div>
+          <div class="field"><label for="f-email">Email</label><input id="f-email" data-k="email" type="email"><a class="quick" id="mailLink" hidden>✉️ Email</a></div>
           <div class="field"><label for="f-ind">Industry</label>
             <select id="f-ind" data-k="industry">
               <option value="">Choose…</option><option>Food plant</option><option>Restaurant / commercial kitchen</option><option>School</option><option>Hotel</option><option>Office building</option><option>Apartment building</option><option>Laundry</option><option>Management company</option><option>Cleaning company</option><option>Food truck</option><option>Other</option>
@@ -562,13 +567,21 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
     try { const d = await api('/api/jobs'); jobs = d.jobs || []; renderAll(); showNotice(''); }
     catch (e) { if (e.message !== 'signed out') showNotice('Couldn’t load the latest jobs. Check your connection; it will retry automatically.'); }
   }
-  async function persist(job){
+  let mergedAt = 0;
+  // Don't cover the "both changes were kept" message with a plain "Saved".
+  const toastIfQuiet = msg => { if (Date.now() - mergedAt > 1000) toast(msg); };
+  // base = the job as it was when the editor opened it. The server uses it to keep
+  // changes someone else saved in the meantime. Returns the saved (possibly merged) job.
+  async function persist(job, base){
     job.updatedAt = new Date().toISOString();
     try {
-      await api('/api/jobs', {method:'POST', body: JSON.stringify({job})});
-      const i = jobs.findIndex(x=>x.id===job.id);
-      if (i>=0) jobs[i] = JSON.parse(JSON.stringify(job)); else jobs.push(JSON.parse(JSON.stringify(job)));
+      const d = await api('/api/jobs', {method:'POST', body: JSON.stringify({job, base: base || null})});
+      const saved = d && d.job ? d.job : JSON.parse(JSON.stringify(job));
+      const i = jobs.findIndex(x=>x.id===saved.id);
+      if (i>=0) jobs[i] = saved; else jobs.push(saved);
       renderAll();
+      if (d && d.merged) { mergedAt = Date.now(); toast('Saved. Someone else changed this too, so both changes were kept.', 5000); }
+      return saved;
     } catch (e) { if (e.message !== 'signed out') toast('Couldn’t save. Check your connection and try again.'); throw e; }
   }
   async function remove(id){
@@ -578,7 +591,16 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
 
   // ---------- UI helpers ----------
   const $ = s => document.querySelector(s);
-  function toast(msg, ms){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), ms || 2200); }
+  function toast(msg, ms, action){
+    const t = $('#toast'); t.textContent = msg; t.onclick = null;
+    t.classList.toggle('has-act', !!action);
+    if (action) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'toast-act'; b.textContent = action.label;
+      b.addEventListener('click', () => { t.classList.remove('show'); action.fn(); });
+      t.append(b);
+    }
+    t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), ms || (action ? 7000 : 2200));
+  }
   function showNotice(msg){ const n = $('#notice'); n.textContent = msg; n.classList.toggle('hidden', !msg); }
 
   function rowHTML(j, opts={}){
@@ -788,6 +810,10 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
     return t;
   }
 
+  function summaryMailto(w){
+    const text = summaryText(w), subject = text.split('\n')[0];
+    return 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text.split('\n').slice(2).join('\n'));
+  }
   function renderSummary(){
     const w = weekStats();
     const card = (n, l, e='') => `<div class="stat"><b>${n}</b><span>${l}</span>${e?`<em>${e}</em>`:''}</div>`;
@@ -807,7 +833,7 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
       <h2>Friday email to White Wing</h2>
       <p class="muted" style="margin-top:-4px">Copy this into an email to the office. It updates as jobs change.</p>
       <textarea class="summary" id="sumText" readonly>${esc(summaryText(w))}</textarea>
-      <div class="sum-actions"><button class="btn primary" type="button" id="copyBtn">Copy summary</button><span class="muted" id="copyMsg"></span></div>
+      <div class="sum-actions"><button class="btn primary" type="button" id="copyBtn">Copy summary</button><a class="btn" id="mailSum" href="${esc(summaryMailto(w))}">✉️ Open in email</a><span class="muted" id="copyMsg"></span></div>
       <h2>Reliable OS routine for this account</h2>
       <ul class="routine">
         <li><b>Every morning:</b> clear the Needs attention list, log new calls and emails as leads, confirm any vendor orders due.</li>
@@ -869,12 +895,20 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
     if (t === 'task') { $('#f-next').value = ''; $('#f-due').value = addDays(1); if (!$('#t-pri').value) $('#t-pri').value = 'normal'; if (!$('#t-who').value) $('#t-who').value = 'Reliable OS'; }
     else onStageChange();
   });
+  function syncQuickLinks(){
+    const ph = $('#f-phone').value.replace(/[^\d+]/g, ''), em = $('#f-email').value.trim();
+    $('#callLink').hidden = ph.replace(/\D/g,'').length < 7; $('#callLink').href = 'tel:' + ph;
+    $('#mailLink').hidden = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em); $('#mailLink').href = 'mailto:' + em;
+  }
+  $('#f-phone').addEventListener('input', syncQuickLinks);
+  $('#f-email').addEventListener('input', syncQuickLinks);
   $('#f-cust').addEventListener('change', () => {
     const name = $('#f-cust').value.trim().toLowerCase(); if (!name) return;
     const prev = jobs.filter(j => (j.customer||'').toLowerCase() === name && j.id !== editing.id).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''))[0];
     if (!prev) return;
     [['#f-contact','contact'],['#f-phone','phone'],['#f-email','email'],['#f-ind','industry'],['#f-vendor','vendor']].forEach(([s,k]) => { if (!$(s).value && prev[k]) $(s).value = prev[k]; });
     if (!$('#f-src').value) $('#f-src').value = 'Existing customer';
+    syncQuickLinks();
   });
 
   async function renderLog(){
@@ -899,6 +933,7 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
     applyType(typeOf(editing));
     $('#custList').innerHTML = allCustomers().map(n=>`<option value="${esc(n)}"></option>`).join('');
     fields().forEach(el => { const v = getK(editing, el.dataset.k); el.value = v ?? ''; });
+    syncQuickLinks();
     $('#dlgTitle').textContent = src ? (isTask(src) ? (src.nextAction || 'Task') : (src.customer || 'Job')) : (ntype === 'reorder' ? 'New customer order' : ntype === 'task' ? 'New task for ' + nwho : 'New lead');
     $('#f-type').disabled = !!src && !canWrite;
     $('#dlgSub').textContent = src ? (src.lost ? 'Marked as lost' : `${S(src.stage).label}, ${daysSince((src.stageDates||{})[src.stage]) || 0} days in this stage`) : (ntype === 'task' ? 'Describe the task and when it’s needed.' : 'Add the business and the first next step.');
@@ -946,7 +981,7 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
     else if (original.type !== editing.type) { editing.stageDates[editing.stage] = today(); addLog(`Changed to ${kind[typeOf(editing)]}`); }
     else if (original.stage !== editing.stage) { editing.stageDates[editing.stage] = today(); addLog(`Moved to ${S(editing.stage).label}`); }
     $('#saveBtn').disabled = true;
-    try { await persist(editing); dlg.close(); toast('Saved'); } catch {} finally { $('#saveBtn').disabled = !canWrite; }
+    try { await persist(editing, original); dlg.close(); toastIfQuiet('Saved'); } catch {} finally { $('#saveBtn').disabled = !canWrite; }
   }
 
   $('#saveBtn').addEventListener('click', save);
@@ -955,18 +990,23 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
   $('#noteBtn').addEventListener('click', async ()=>{
     const v = $('#noteInput').value.trim(); if (!v) return;
     collect(); addLog(v); $('#noteInput').value = '';
-    try { await persist(editing); original = JSON.parse(JSON.stringify(editing)); renderLog(); toast('Note added'); } catch {}
+    try { const saved = await persist(editing, original); editing = JSON.parse(JSON.stringify(saved)); original = JSON.parse(JSON.stringify(saved)); renderLog(); toastIfQuiet('Note added'); } catch {}
   });
   $('#noteInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#noteBtn').click(); } });
   $('#lostBtn').addEventListener('click', async ()=>{
     collect();
     editing.lost = !editing.lost;
     if (editing.lost) { editing.lostAt = today(); addLog('Marked as lost'); } else { addLog('Reopened'); editing.stageDates = editing.stageDates||{}; editing.stageDates[editing.stage] = today(); }
-    try { await persist(editing); dlg.close(); toast(editing.lost ? 'Marked as lost' : 'Reopened'); } catch {}
+    try { await persist(editing, original); dlg.close(); toastIfQuiet(editing.lost ? 'Marked as lost' : 'Reopened'); } catch {}
   });
+  // Two taps to delete; the second tap must come within 4 seconds.
+  function armDelete(b, text){
+    b.dataset.armed = '1'; b.textContent = text;
+    clearTimeout(b._t); b._t = setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Delete'; }, 4000);
+  }
   $('#delBtn').addEventListener('click', async ()=>{
     const b = $('#delBtn');
-    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Click again to delete'; return; }
+    if (!b.dataset.armed) { armDelete(b, 'Click again to delete'); return; }
     try { await remove(editing.id); dlg.close(); toast('Deleted'); } catch { toast('Couldn’t delete. Try again.'); }
   });
 
@@ -1081,7 +1121,7 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
     tYiddish.forEach(y => stamp('Said in Yiddish: ' + y)); tYiddish = [];
     j.log.push(...tPending); tPending = [];
     $('#tdSave').disabled = true;
-    try { await persist(j); tdlg.close(); toast('Saved'); } catch {} finally { $('#tdSave').disabled = !canWrite; }
+    try { await persist(j, tOrig); tdlg.close(); toastIfQuiet('Saved'); } catch {} finally { $('#tdSave').disabled = !canWrite; }
   }
   $('#tdSave').addEventListener('click', saveTask);
   $('#tdCancel').addEventListener('click', ()=>tdlg.close());
@@ -1089,15 +1129,22 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
   $('#tdClose').addEventListener('click', ()=>tdlg.close());
   $('#tdDel').addEventListener('click', async ()=>{
     const b = $('#tdDel');
-    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Tap again to delete'; return; }
+    if (!b.dataset.armed) { armDelete(b, 'Tap again to delete'); return; }
     try { await remove(tEdit.id); tdlg.close(); toast('Deleted'); } catch { toast('Couldn’t delete. Try again.'); }
   });
-  async function setTaskStatus(id, stage){
+  async function setTaskStatus(id, stage, opts={}){
     const src = jobs.find(j=>j.id===id); if (!src || src.stage === stage) return;
+    const from = src.stage;
     const j = JSON.parse(JSON.stringify(src));
-    j.stage = stage; j.stageDates = j.stageDates || {}; j.stageDates[stage] = today();
-    j.log = j.log || []; j.log.push({at:new Date().toISOString(), text: 'Status: ' + STATUS_WORD[stage], byName: myName || ''});
-    try { await persist(j); toast(STATUS[stage]); } catch { renderTasks(); }
+    j.stage = stage; j.stageDates = j.stageDates || {};
+    if (!opts.undo || !j.stageDates[stage]) j.stageDates[stage] = today(); // undo keeps the original date
+    j.log = j.log || []; j.log.push({at:new Date().toISOString(), text: (opts.undo ? 'Undone. Status: ' : 'Status: ') + STATUS_WORD[stage], byName: myName || ''});
+    try {
+      await persist(j, src);
+      // A big Undo button, so a mistaken tap is easy to take back.
+      if (opts.undo) toastIfQuiet('↩ ' + STATUS[stage]);
+      else if (Date.now() - mergedAt > 1000) toast(STATUS[stage], 8000, {label:'↩ Undo', fn: () => setTaskStatus(id, from, {undo:true})});
+    } catch { renderTasks(); }
   }
   // Yiddish voice: record WAV, server transcribes + translates to English
   const canRecord = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && (window.AudioContext || window.webkitAudioContext));
@@ -1200,9 +1247,11 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
   function enterApp(){
     gate.hidden = true; document.querySelector('.wrap').hidden = false;
     route(); refresh();
-    clearInterval(pollTimer); pollTimer = setInterval(()=>{ if (!document.hidden && !dlg.open && !tdlg.open) refresh(); }, 20000);
+    clearInterval(pollTimer); pollTimer = setInterval(()=>{ if (!document.hidden && quiet()) refresh(); }, 20000);
   }
-  document.addEventListener('visibilitychange', ()=>{ if (!document.hidden && gate.hidden && !dlg.open && !tdlg.open) refresh(); });
+  // Don't redraw while someone is mid-action: a dialog is open or a status dropdown has focus.
+  const quiet = () => !dlg.open && !tdlg.open && !(document.activeElement && document.activeElement.matches('[data-tstatus]'));
+  document.addEventListener('visibilitychange', ()=>{ if (!document.hidden && gate.hidden && quiet()) refresh(); });
   $('#gForm').addEventListener('submit', async e => {
     e.preventDefault();
     const name = $('#gName').value.trim(), pw = $('#gPass').value;

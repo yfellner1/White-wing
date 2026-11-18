@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { get, put, head, BlobPreconditionFailedError, BlobNotFoundError } from '@vercel/blob';
 
 const PATH = 'data/jobs.json';
+const BACKUP_DIR = 'data/backups/';
 const COOKIE = 'wwt';
 const MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
@@ -49,23 +50,42 @@ export async function readJobs() {
   return { jobs: text ? JSON.parse(text) : {}, found: true };
 }
 
+// Keeps one snapshot per day (the data as it was before that day's first save),
+// so a bad save can be undone by copying a backup back over data/jobs.json.
+let backedUpDay = '';
+async function backupOnce(before) {
+  const day = new Date().toISOString().slice(0, 10);
+  if (backedUpDay === day) return;
+  try {
+    await put(BACKUP_DIR + day + '.json', before, {
+      access: 'private', contentType: 'application/json', addRandomSuffix: false, allowOverwrite: false
+    });
+    backedUpDay = day;
+  } catch (e) {
+    if (isConflict(e)) backedUpDay = day; // another instance already saved today's backup
+    else console.warn('backup failed:', e && e.name, e && e.message);
+  }
+}
+
 export async function mutate(fn) {
   for (let i = 0; i < 6; i++) {
     const etag = await currentEtag();
-    let jobs = {};
+    let jobs = {}, before = null;
     if (etag) {
       const r = await readJobs();
       // Never write over saved data we failed to read.
       if (!r.found) { await new Promise(res => setTimeout(res, 250)); continue; }
       jobs = r.jobs;
+      before = JSON.stringify(jobs);
     }
-    fn(jobs);
+    const result = fn(jobs);
     try {
       await put(PATH, JSON.stringify(jobs), {
         access: 'private', contentType: 'application/json', addRandomSuffix: false,
         ...(etag ? { allowOverwrite: true, ifMatch: etag } : { allowOverwrite: false })
       });
-      return jobs;
+      if (before) await backupOnce(before);
+      return result === undefined ? jobs : result;
     } catch (e) {
       console.warn('save attempt', i + 1, 'failed:', e && e.name, e && e.message);
       if (!isConflict(e)) throw e;

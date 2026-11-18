@@ -20,7 +20,9 @@ Live: https://white-wing-tracker.vercel.app (password protected)
   - `mutate(fn)` does optimistic concurrency. It reads the etag with `head()`, then writes with `put({ ifMatch })`, and retries up to 6 times when there's a conflict.
   - **Gotcha:** take the etag from `head()`, not from a CDN `get()`. The CDN etag doesn't match `ifMatch`, and saves failed in production because of it.
   - **Gotcha:** never overwrite the blob when the read fails. That would wipe everything.
-- `api/jobs.js`: `GET` lists jobs. `POST {job}` upserts one (ids must match `^[A-Za-z0-9_-]{1,64}$`; size capped at 200k chars). `DELETE ?id=` removes one.
+  - **Daily backups:** the first save each day (UTC) also writes the data as it was *before* that save to `data/backups/YYYY-MM-DD.json`. To restore, copy a backup's contents back over `data/jobs.json` in the Blob store. Backups aren't pruned (one small file a day).
+- `api/_merge.js`: `mergeJob(prev, base, mine)` for saves that overlap. If someone else saved the job after the editor opened it, a field takes the editor's value only when the editor changed it; otherwise the stored value stays. Blank, null and missing count as the same value. Activity logs are always combined, so notes never get lost.
+- `api/jobs.js`: `GET` lists jobs. `POST {job, base}` upserts one (ids must match `^[A-Za-z0-9_-]{1,64}$`; size capped at 200k chars). `base` is the job as the client first loaded it, and the server merges with it through `mergeJob`. The server sets `updatedAt` and returns `{ok, job, merged}`; the client keeps the returned `job`. `DELETE ?id=` removes one.
 - `api/login.js`:
   - `GET` returns `{authed, setup}`.
   - `POST {password}` sets the `wwt` cookie, an HMAC-signed session that lasts 30 days.
@@ -60,7 +62,7 @@ Never print, log or commit these values. For local dev, run `vercel env pull .en
 
 ## Commands
 - `npm install`
-- `npm test`: jsdom smoke test of the task flow, with a fake API. Run it after any change to index.html.
+- `npm test`: unit tests for the merge rules, plus a jsdom smoke test with a fake API that uses the real `mergeJob`. It covers the task flow, Undo, overlapping edits, the summary email link and the call/email shortcuts. Run it after any change to index.html or `api/_merge.js`.
 - `npm run dev`: `vercel dev`, the local server with the real API (needs `vercel link` and the env vars).
 - `npm run deploy`: `vercel --prod`. Before connecting a Git repo, deploys go out through the Vercel CLI. After the repo is connected to the Vercel project, pushing to `main` deploys.
 

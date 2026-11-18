@@ -4,6 +4,24 @@ import { JSDOM } from 'jsdom';
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { mergeJob } from '../api/_merge.js';
+import { reminderText } from '../api/remind.js';
+import PRODUCTS from '../api/_products.js';
+
+// ---- morning text reminder ----
+{
+  const jobs = {
+    a: { type: 'task', stage: 'requested', nextAction: 'New order · Kosher Castle', nextDue: '2026-11-18', task: { assignee: 'Yosef Yaakov' } },
+    b: { type: 'task', stage: 'working', nextAction: 'Reminder: call the bank', nextDue: '2026-11-15', task: { assignee: 'Yosef Yaakov' } },
+    c: { type: 'task', stage: 'requested', nextAction: 'Not yet', nextDue: '2026-11-20', task: { assignee: 'Yosef Yaakov' } },
+    d: { type: 'task', stage: 'done', nextAction: 'Done already', nextDue: '2026-11-10', task: { assignee: 'Yosef Yaakov' } },
+    e: { type: 'task', stage: 'requested', nextAction: 'For the office', nextDue: '2026-11-18', task: { assignee: 'Reliable OS' } }
+  };
+  const t = reminderText(jobs, '2026-11-18');
+  assert.match(t, /tasks for today: 2/);
+  assert.match(t, /1\. Reminder: call the bank \(late\)\n2\. New order · Kosher Castle/);
+  assert.doesNotMatch(t, /Not yet|Done already|For the office/);
+  assert.equal(reminderText({ c: jobs.c }, '2026-11-18'), null, 'no text when nothing is due');
+}
 
 // ---- merge rules (server side) ----
 {
@@ -32,6 +50,7 @@ const fakeFetch = async (url, opts = {}) => {
   const u = new URL(url, 'https://x.test');
   const json = (body, status = 200) => ({ ok: status < 400, status, json: async () => body });
   if (u.pathname === '/api/login') return json({ authed: true, setup: true });
+  if (u.pathname === '/api/products') return json({ products: PRODUCTS });
   if (u.pathname === '/api/jobs') {
     if (!opts.method || opts.method === 'GET') return json({ jobs: store });
     if (opts.method === 'POST') {
@@ -67,14 +86,53 @@ assert.equal(d.querySelector('.wrap').hidden, false, 'app should show when authe
 // New task with a customer from the dropdown
 $('#newTask').click(); await tick();
 assert.ok($('#tdlg').open, 'task dialog opens');
-$('#tdName').value = 'Sign check for vendor';
+assert.equal($('#tdItemsQ').hidden, true, 'items hidden until order/estimate is picked');
+$('#tdSave').click(); await tick(50);
+assert.equal(store.length, 0, 'task type is required');
+d.querySelector('[data-kind="order"]').click(); await tick();
+assert.equal($('#tdItemsQ').hidden, false);
+assert.equal($('#tdVendorQ').hidden, false);
 const sel = $('#tdCustSel');
 assert.ok([...sel.options].some(o => o.value === 'Kosher Castle'), 'customer list populated');
 sel.value = 'Kosher Castle'; sel.dispatchEvent(new window.Event('change', { bubbles: true }));
+$('#tdDetails').value = 'They need it before Friday';
+// Search the product list and add an item with its list price
+const search = $('#tdItemSearch');
+search.value = 'wallop 5 gal'; search.dispatchEvent(new window.Event('input', { bubbles: true })); await tick(80);
+const hit = d.querySelector('#tdItemHits [data-padd="#501 Wallop 5 Gal PL"]');
+assert.ok(hit, 'product search finds the item');
+hit.click(); await tick();
+assert.ok(d.querySelector('[data-vendor="Alpha"]').getAttribute('aria-pressed') === 'true', 'vendor filled from the product');
+const qty = d.querySelector('#tdItems [data-iq="0"]'); qty.value = '2'; qty.dispatchEvent(new window.Event('input', { bubbles: true }));
+const price = d.querySelector('#tdItems [data-ip="0"]'); assert.equal(price.value, '89.99', 'list price filled in');
+price.value = '85'; price.dispatchEvent(new window.Event('input', { bubbles: true }));
+// An item that isn't on the list
+search.value = 'Custom bracket'; search.dispatchEvent(new window.Event('input', { bubbles: true })); await tick();
+d.querySelector('#tdItemHits [data-padd-new]').click(); await tick();
+assert.equal($('#tdShip').value, '', 'shipping starts blank');
+assert.equal($('#tdTotal').textContent, '$170.00');
 $('#tdSave').click(); await tick(100);
 assert.equal(store.length, 1);
 assert.equal(store[0].customer, 'Kosher Castle');
 assert.equal(store[0].stage, 'requested');
+assert.equal(store[0].nextAction, 'New order · Kosher Castle', 'auto title');
+assert.equal(store[0].vendor, 'Alpha');
+assert.deepEqual(store[0].task.items.map(i => [i.name, i.qty, i.price]), [['#501 Wallop 5 Gal PL', 2, 85], ['Custom bracket', 1, '']]);
+assert.equal(store[0].task.shipping, '');
+assert.match(d.querySelector('.tcard').textContent, /2 items · \$170\.00/);
+
+// A reminder with no customer is titled from its description
+$('#newTask').click(); await tick();
+d.querySelector('[data-kind="reminder"]').click();
+assert.equal($('#tdItemsQ').hidden, true);
+$('#tdDetails').value = 'Call the bank about the deposit';
+$('#tdSave').click(); await tick(100);
+const rem = store.find(j => j.task.kind === 'reminder');
+assert.equal(rem.nextAction, 'Reminder: Call the bank about the deposit');
+assert.equal(rem.task.items, undefined);
+d.querySelector(`[data-topen="${rem.id}"]`).click(); await tick();
+$('#tdDel').click(); $('#tdDel').click(); await tick(100);
+assert.equal(store.length, 1, 'reminder deleted');
 
 // Status dropdown on the card: working, then done
 const statusSel = () => d.querySelector('[data-tstatus]');

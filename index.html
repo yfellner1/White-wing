@@ -10,10 +10,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --navy:#2C3A93; --lime:#ADD41A; --cyan:#63CCED;
-  --bg:#F4F6FB; --surface:#FFFFFF; --surface-2:#EEF1F9; --ink:#1B2150; --muted:#586082;
-  --line:#DCE1EE; --accent:#2C3A93; --accent-ink:#FFFFFF;
-  --bad:#B8322A; --bad-bg:#FBEAE8; --warn:#8F5B0A; --warn-bg:#FDF1DC; --good:#3E5A00; --good-bg:#EEF7CF;
+  /* Softened brand colors (brand: navy #2C3A93, lime #ADD41A, cyan #63CCED) */
+  --navy:#4A58A6; --lime:#C9E26A; --cyan:#8FD6EE;
+  --bg:#F6F7FB; --surface:#FFFFFF; --surface-2:#F0F2F8; --ink:#2A3050; --muted:#646B88;
+  --line:#E2E5EF; --accent:#4A58A6; --accent-ink:#FFFFFF;
+  --sel:#EAEEFB; --sel-line:#9AA6DD; --soft-lime:#EEF5D2; --soft-cyan:#E3F4FA;
+  --bad:#B94A42; --bad-bg:#FBEEEC; --warn:#946420; --warn-bg:#FCF3E3; --good:#4A6512; --good-bg:#F0F6DC;
   --radius:10px;
   color-scheme: light;
   box-sizing:border-box;
@@ -22,16 +24,16 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#11142A; --surface:#1A1F3D; --surface-2:#232A50; --ink:#EDEFFA; --muted:#A6ACCB;
-    --line:#2F3762; --accent:#8C9BF2; --accent-ink:#11142A;
-    --bad:#FF8A7E; --bad-bg:#3A1C22; --warn:#F3BE5E; --warn-bg:#382B14; --good:#C9EC4E; --good-bg:#283214;
+    --bg:#14172C; --surface:#1C2140; --surface-2:#252B4F; --ink:#E8EAF6; --muted:#A3A9C6;
+    --line:#2F3762; --accent:#9AA6EE; --accent-ink:#14172C; --sel:#2C3463; --sel-line:#6E7BC4; --soft-lime:#2C3519; --soft-cyan:#1E3340;
+    --bad:#F09A90; --bad-bg:#3A1C22; --warn:#F3BE5E; --warn-bg:#382B14; --good:#C5DD7A; --good-bg:#283214;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#11142A; --surface:#1A1F3D; --surface-2:#232A50; --ink:#EDEFFA; --muted:#A6ACCB;
-  --line:#2F3762; --accent:#8C9BF2; --accent-ink:#11142A;
-  --bad:#FF8A7E; --bad-bg:#3A1C22; --warn:#F3BE5E; --warn-bg:#382B14; --good:#C9EC4E; --good-bg:#283214;
+  --bg:#14172C; --surface:#1C2140; --surface-2:#252B4F; --ink:#E8EAF6; --muted:#A3A9C6;
+  --line:#2F3762; --accent:#9AA6EE; --accent-ink:#14172C; --sel:#2C3463; --sel-line:#6E7BC4; --soft-lime:#2C3519; --soft-cyan:#1E3340;
+  --bad:#F09A90; --bad-bg:#3A1C22; --warn:#F3BE5E; --warn-bg:#382B14; --good:#C5DD7A; --good-bg:#283214;
   color-scheme: dark;
 }
 *,*::before,*::after{box-sizing:inherit}
@@ -47,7 +49,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:22px}
 .brand{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--accent);font-size:.92rem;margin-bottom:6px}
 .brand i{display:inline-block;width:22px;height:8px;border-radius:4px;background:var(--lime)}
-h1{margin:0;font-size:clamp(1.6rem,3.2vw,2.2rem);line-height:1.15;letter-spacing:-.01em}
+h1{margin:0;font-size:clamp(1.3rem,2.6vw,1.8rem);line-height:1.2;letter-spacing:-.01em}
 .sub{margin:6px 0 0;color:var(--muted)}
 .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);
   padding:10px 16px;border-radius:999px;cursor:pointer;font-weight:700;font-size:.95rem;white-space:nowrap}
@@ -57,6 +59,7 @@ h1{margin:0;font-size:clamp(1.6rem,3.2vw,2.2rem);line-height:1.15;letter-spacing
 .btn.small{padding:6px 12px;font-size:.85rem}
 .btn.danger{color:var(--bad)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+.btn[hidden]{display:none}
 
 /* Tabs */
 nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:26px;overflow-x:auto}
@@ -117,9 +120,8 @@ h2 small{font-weight:400;color:var(--muted);font-size:.9rem;margin-left:6px}
 .rail button .l{display:block;font-weight:700;font-size:.88rem;white-space:nowrap}
 .rail button .c{display:block;font-size:1.5rem;font-weight:700;line-height:1.1;margin-top:2px}
 .rail button .f{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--bad);margin-left:6px;vertical-align:middle}
-.rail button[aria-pressed="true"]{background:var(--navy);color:#fff}
-.rail button[aria-pressed="true"] .n{color:#C9D0FF}
-.rail button[aria-pressed="true"] .c{color:var(--lime)}
+.rail button[aria-pressed="true"]{background:var(--sel);color:var(--ink);box-shadow:inset 0 -3px 0 var(--sel-line)}
+.rail button[aria-pressed="true"] .c{color:var(--accent)}
 .rail button:not([aria-pressed="true"]):hover{background:var(--surface-2)}
 .rail button.lost{margin-left:18px;clip-path:none;border-radius:var(--radius);padding-left:18px}
 
@@ -165,89 +167,113 @@ legend::before{content:"";width:14px;height:5px;border-radius:3px;background:var
 .gmsg{margin:0;color:var(--bad);font-size:.9rem;min-height:1.2em}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
-.toast.has-act{display:flex;white-space:nowrap;align-items:center;gap:14px;padding:8px 8px 8px 20px;font-size:1.05rem}
+.toast{width:max-content;max-width:calc(100vw - 32px);text-align:center;z-index:10}
+dialog .toast{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+.toast.has-act{display:flex;align-items:center;gap:14px;padding:8px 8px 8px 20px;font-size:1rem;text-align:left}
+.toast-act{flex:0 0 auto;white-space:nowrap}
 .toast.has-act.show{pointer-events:auto}
-.toast-act{border:0;border-radius:999px;background:var(--lime);color:#1B2150;font-weight:700;font-size:1.05rem;padding:12px 20px;min-height:48px;cursor:pointer}
+.toast-act{border:0;border-radius:999px;background:#E4F0B5;color:#2A3050;font-weight:700;font-size:1rem;padding:10px 18px;min-height:44px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 
 /* ===== Area switch (Tasks vs Leads & orders) ===== */
 .switch{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 0 26px}
-.switch a{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px 16px;border-radius:16px;border:2px solid var(--line);
-  background:var(--surface);color:var(--ink);text-decoration:none;font-weight:700;font-size:1.25rem}
-.switch a .ico{font-size:1.6rem;line-height:1}
-.switch a[aria-current="page"]{background:var(--navy);border-color:var(--navy);color:#fff}
-.switch a .count{display:inline-block;min-width:28px;padding:2px 9px;border-radius:999px;background:var(--bad);color:#fff;font-size:.9rem;text-align:center}
+.switch a{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 14px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);text-decoration:none;font-weight:700;font-size:1.08rem}
+.switch a .ico{font-size:1.3rem;line-height:1}
+.switch a[aria-current="page"]{background:var(--sel);border-color:var(--sel-line);box-shadow:inset 0 0 0 1px var(--sel-line)}
+.switch a .count{display:inline-block;min-width:24px;padding:1px 8px;border-radius:999px;background:var(--bad-bg);color:var(--bad);font-size:.85rem;text-align:center}
 .salesbar{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:26px}
 .salesbar nav.tabs{border-bottom:0;margin-bottom:0}
 .salesbar .acts{display:flex;gap:10px;flex-wrap:wrap;padding-bottom:10px}
 .salesbar[hidden]{display:none}
 
-/* ===== Tasks area: big, simple ===== */
-#v-tasks{font-size:18px}
-.people{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
-.people button{display:flex;align-items:center;gap:10px;padding:10px 18px 10px 10px;border-radius:999px;border:2px solid var(--line);background:var(--surface);cursor:pointer;font-weight:700;font-size:1.05rem}
-.people button[aria-pressed="true"]{border-color:var(--navy);background:var(--navy);color:#fff}
-.av{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;font-weight:700;font-size:.95rem;flex:0 0 auto}
-.av.yy{background:var(--lime);color:#1B2150}
-.av.ros{background:var(--cyan);color:#1B2150}
-.av.all{background:var(--surface-2);color:var(--ink)}
-.bignew{width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:20px;border-radius:16px;border:0;background:var(--lime);color:#1B2150;font-weight:700;font-size:1.3rem;cursor:pointer;margin-bottom:28px}
+/* ===== Tasks area: simple and calm ===== */
+#v-tasks{font-size:16px}
+.people{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.people button{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:1rem;min-height:44px}
+.people button[aria-pressed="true"]{border-color:var(--sel-line);background:var(--sel)}
+.av{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-weight:700;font-size:.82rem;flex:0 0 auto}
+.av.yy{background:var(--soft-lime);color:var(--good)}
+.av.ros{background:var(--soft-cyan);color:#2F6F86}
+.av.all{background:var(--surface-2);color:var(--muted)}
+.bignew{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;border:1px solid #B9D25A;background:var(--soft-lime);color:var(--ink);font-weight:700;font-size:1.08rem;cursor:pointer;margin-bottom:24px;min-height:52px}
+.bignew:hover{background:#E6F0C0}
 .bignew:disabled{opacity:.5}
-.tgroup{margin:0 0 30px}
-.tgroup > h2{display:flex;align-items:center;gap:10px;font-size:1.3rem;margin:0 0 14px}
-.tgroup > h2 .dot{width:14px;height:14px;border-radius:50%}
-.tlist{display:flex;flex-direction:column;gap:14px}
-.tcard{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;background:var(--surface);border:2px solid var(--line);border-left:10px solid var(--line);border-radius:16px;padding:16px 18px;cursor:pointer}
-.tcard:hover{border-color:var(--accent)}
-.tcard.late{border-left-color:var(--bad)} .tcard.today{border-left-color:#E2A73A} .tcard.later{border-left-color:var(--cyan)} .tcard.done{border-left-color:var(--lime);opacity:.85}
-.tcard .tname{font-weight:700;font-size:1.2rem;line-height:1.3}
-.tcard.done .tname{text-decoration:line-through;text-decoration-thickness:2px}
-.tcard .tmeta{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-weight:700;font-size:.95rem;background:var(--surface-2)}
-.pill.late{background:var(--bad-bg);color:var(--bad)} .pill.today{background:var(--warn-bg);color:var(--warn)} .pill.done{background:var(--good-bg);color:var(--good)} .pill.doing{background:rgba(99,204,237,.2)}
-.tacts{display:flex;gap:10px;align-items:center}
-.donebtn{min-width:120px;padding:14px 18px;border-radius:14px;border:0;background:var(--good-bg);color:var(--good);font-weight:700;font-size:1.1rem;cursor:pointer}
-.donebtn:hover{filter:brightness(.96)}
-.iconbtn{width:52px;height:52px;border-radius:50%;border:2px solid var(--line);background:var(--surface);font-size:1.4rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.iconbtn:hover{border-color:var(--accent)}
-.iconbtn.listening{background:var(--bad-bg);border-color:var(--bad)}
-details.tgroup > summary{cursor:pointer;font-weight:700;font-size:1.3rem;list-style:none;display:flex;align-items:center;gap:10px;margin-bottom:14px}
-details.tgroup > summary::-webkit-details-marker{display:none}
-details.tgroup > summary::before{content:"\25B8";transition:transform .15s}
-details.tgroup[open] > summary::before{transform:rotate(90deg)}
+.tgroup{margin:0 0 26px}
+.tgroup > h2{display:flex;align-items:center;gap:8px;font-size:1.05rem;margin:0 0 10px;color:var(--muted)}
+.tlist{display:flex;flex-direction:column;gap:10px}
+.tcard{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.tcard:hover{border-color:var(--sel-line)}
+.tcard.late{border-left-color:#E4A39C} .tcard.today{border-left-color:#EBC77F} .tcard.later{border-left-color:var(--cyan)} .tcard.done{border-left-color:var(--lime);opacity:.8}
+.tcard .tname{font-weight:700;font-size:1.02rem;line-height:1.35}
+.tcard .tdesc{color:var(--muted);font-size:.92rem;margin-top:2px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.tcard.done .tname{text-decoration:line-through;text-decoration-color:var(--muted)}
+.tcard .tmeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:999px;font-size:.88rem;background:var(--surface-2)}
+.pill.late{background:var(--bad-bg);color:var(--bad)} .pill.today{background:var(--warn-bg);color:var(--warn)} .pill.done{background:var(--good-bg);color:var(--good)} .pill.doing{background:var(--soft-cyan)}
+.tacts{display:flex;gap:8px;align-items:center}
+.iconbtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.1rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
 @media (max-width:640px){
   .tcard{grid-template-columns:auto 1fr;}
   .tcard .tacts{grid-column:1 / -1;justify-content:flex-end}
-  .switch a{font-size:1.05rem;padding:16px 10px}
+  .switch a{font-size:1rem;padding:14px 10px}
 }
 
 /* ===== Simple task form ===== */
-#tdlg .dlg-body{font-size:18px}
-.q{margin-top:26px}
-.q > .ql{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.15rem;margin-bottom:12px}
-.q > .ql .qi{font-size:1.5rem}
-.inrow{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
-.inrow > input,.inrow > textarea{min-width:200px}
-.yibtn{height:52px;padding:0 16px;border-radius:26px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:1.05rem;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
-.yibtn:hover{border-color:var(--accent)}
-.yibtn.listening{background:var(--bad);border-color:var(--bad);color:#fff}
-.yibtn:disabled{opacity:.6;cursor:wait}
-.inrow input,.inrow textarea{flex:1;padding:16px;font-size:1.15rem;border:2px solid var(--line);border-radius:12px;background:var(--bg)}
-.inrow textarea{min-height:96px;resize:vertical}
-.choices{display:flex;gap:10px;flex-wrap:wrap}
-.choices button{display:flex;align-items:center;gap:10px;padding:14px 20px;border-radius:14px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:1.1rem;cursor:pointer}
-.choices button[aria-pressed="true"]{border-color:var(--navy);background:var(--navy);color:#fff}
-.choices input[type=date]{padding:12px 14px;font-size:1.05rem;border:2px solid var(--line);border-radius:14px;background:var(--bg)}
-.tlog{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px;max-height:240px;overflow:auto}
-.tlog li{padding:10px 14px;background:var(--surface-2);border-radius:10px;font-size:1rem}
-.tlog li .when{display:block;color:var(--muted);font-size:.85rem}
-#tdlg .dlg-foot .btn{font-size:1.1rem;padding:14px 24px}
-.csel{width:100%;padding:16px;font-size:1.15rem;font-weight:700;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);cursor:pointer}
-#tdCustOther[hidden]{display:none}
-.tsel{font:inherit;font-weight:700;font-size:1.05rem;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer;min-width:170px}
-.tsel.s-working{background:rgba(99,204,237,.22);border-color:var(--cyan)}
-.tsel.s-done{background:var(--good-bg);color:var(--good);border-color:var(--lime)}
-#tdlg .dlg-foot .btn.primary{min-width:160px;justify-content:center}
+#tdlg .dlg-body{font-size:16px}
+.q{margin-top:22px}
+.q[hidden]{display:none}
+.q > .ql{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1rem;margin-bottom:8px}
+.q > .ql .qi{font-size:1.15rem}
+.q > .ql .opt{font-weight:400;color:var(--muted)}
+.inrow{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.tin,.inrow input,.inrow textarea{flex:1;width:100%;min-width:180px;padding:12px 14px;font-size:1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+textarea.tin{min-height:90px;resize:vertical}
+.voice{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.vbtn{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:1rem;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.vbtn:hover{border-color:var(--sel-line)}
+.vbtn.listening{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.vbtn:disabled{opacity:.6;cursor:wait}
+.vbtn[hidden]{display:none}
+.choices{display:flex;gap:8px;flex-wrap:wrap}
+.choices button{display:flex;align-items:center;gap:8px;padding:10px 14px;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:1rem;cursor:pointer}
+.choices button:hover{border-color:var(--sel-line)}
+.choices button[aria-pressed="true"]{border-color:var(--sel-line);background:var(--sel);box-shadow:inset 0 0 0 1px var(--sel-line)}
+.choices input[type=date]{padding:9px 12px;font-size:1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.kinds button{justify-content:flex-start}
+@media (max-width:520px){.kinds{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tlog{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
+.tlog li{padding:8px 12px;background:var(--surface-2);border-radius:8px;font-size:.95rem}
+.tlog li .when{display:block;color:var(--muted);font-size:.8rem}
+#tdlg .dlg-foot .btn{font-size:1rem;padding:11px 20px}
+#tdlg .dlg-foot .btn.primary{min-width:140px;justify-content:center}
+.csel{width:100%;padding:12px 14px;font-size:1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);cursor:pointer}
+#tdCustOther[hidden],#tdVendorOther[hidden]{display:none}
+.tsel{font:inherit;font-size:.95rem;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;min-width:150px;min-height:44px}
+.tsel.s-working{background:var(--soft-cyan);border-color:var(--cyan)}
+.tsel.s-done{background:var(--good-bg);color:var(--good);border-color:#C5DD7A}
+/* Item picker */
+.hits{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;margin-top:6px;overflow:hidden;background:var(--surface)}
+.hits[hidden]{display:none}
+.hits button{display:flex;justify-content:space-between;gap:12px;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:10px 14px;cursor:pointer;font-size:.95rem;min-height:44px}
+.hits button:last-child{border-bottom:0}
+.hits button:hover,.hits button:focus-visible{background:var(--sel)}
+.hits small{display:block;color:var(--muted);font-size:.8rem}
+.hits .hp{white-space:nowrap;color:var(--muted)}
+.ilines{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.iline{display:grid;grid-template-columns:1fr 70px 100px 84px 40px;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.iline .iname{font-size:.95rem;line-height:1.3}
+.iline .iname small{display:block;color:var(--muted);font-size:.8rem}
+.iline label{font-size:.75rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.iline input{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:.95rem}
+.iline .itot{text-align:right;font-size:.95rem}
+.iline .ix{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--muted)}
+@media (max-width:560px){.iline{grid-template-columns:1fr 64px 92px 36px}.iline .itot{display:none}}
+.itotals{display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:.95rem}
+.itotals label{display:flex;align-items:center;gap:8px;color:var(--muted)}
+.itotals input{width:110px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.itotals b{font-size:1.05rem}
 
 </style>
 </head>
@@ -427,13 +453,48 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
   </div>
   <div class="dlg-body">
     <div class="q">
-      <div class="ql"><span class="qi" aria-hidden="true">📝</span><label for="tdName">What needs to be done?</label></div>
-      <div class="inrow"><input id="tdName" autocomplete="off" placeholder="e.g. Sign check for Acme"><button type="button" class="iconbtn mic" data-mic="tdName" aria-label="Speak instead of typing" title="Speak">🎤</button><button type="button" class="yibtn" data-yi="tdName" aria-label="Speak in Yiddish, it will be translated to English" title="Speak Yiddish">🎤 ייִדיש</button></div>
+      <div class="ql" id="tdKindL"><span class="qi" aria-hidden="true">🏷️</span>Task type</div>
+      <div class="choices kinds" id="tdKind" role="group" aria-labelledby="tdKindL">
+        <button type="button" data-kind="order" aria-pressed="false">📦 New order</button>
+        <button type="button" data-kind="estimate" aria-pressed="false">💲 Estimate</button>
+        <button type="button" data-kind="reminder" aria-pressed="false">⏰ Reminder</button>
+        <button type="button" data-kind="install" aria-pressed="false">🔧 Installation</button>
+        <button type="button" data-kind="visit" aria-pressed="false">📍 Site visit</button>
+        <button type="button" data-kind="other" aria-pressed="false">📝 Other</button>
+      </div>
     </div>
     <div class="q">
-      <div class="ql"><span class="qi" aria-hidden="true">🏢</span><label for="tdCust">Customer name <span class="muted" style="font-weight:400">(optional)</span></label></div>
-      <select id="tdCustSel" class="csel" aria-label="Customer name"></select>
-      <div class="inrow" id="tdCustOther" hidden style="margin-top:10px"><input id="tdCust" autocomplete="off" placeholder="Type the customer name"><button type="button" class="iconbtn mic" data-mic="tdCust" aria-label="Speak the customer name" title="Speak">🎤</button></div>
+      <div class="ql"><span class="qi" aria-hidden="true">🏢</span><label for="tdCustSel">Customer <span class="opt">(optional)</span></label></div>
+      <select id="tdCustSel" class="csel"></select>
+      <div id="tdCustOther" hidden style="margin-top:8px"><input id="tdCust" class="tin" autocomplete="off" placeholder="New customer name" aria-label="New customer name"></div>
+    </div>
+    <div class="q">
+      <div class="ql"><span class="qi" aria-hidden="true">📄</span><label for="tdDetails">Description</label></div>
+      <textarea id="tdDetails" class="tin" placeholder="What needs to be done? Type it, or tap a button to speak."></textarea>
+      <div class="voice">
+        <button type="button" class="vbtn" data-voice="en" aria-label="Speak in English">🎤 English</button>
+        <button type="button" class="vbtn" data-voice="yi" aria-label="Speak in Yiddish, it will be written in English">🎤 ייִדיש</button>
+      </div>
+    </div>
+    <div class="q" id="tdVendorQ" hidden>
+      <div class="ql" id="tdVendorL"><span class="qi" aria-hidden="true">🚚</span>Vendor</div>
+      <div class="choices" id="tdVendor" role="group" aria-labelledby="tdVendorL">
+        <button type="button" data-vendor="Alpha" aria-pressed="false">Alpha</button>
+        <button type="button" data-vendor="TCD Parts" aria-pressed="false">TCD Parts</button>
+        <button type="button" data-vendor="CCI" aria-pressed="false">CCI</button>
+        <button type="button" data-vendor="__other" aria-pressed="false">Other</button>
+      </div>
+      <div id="tdVendorOther" hidden style="margin-top:8px"><input id="tdVendorName" class="tin" autocomplete="off" placeholder="Vendor name" aria-label="Other vendor name"></div>
+    </div>
+    <div class="q" id="tdItemsQ" hidden>
+      <div class="ql"><span class="qi" aria-hidden="true">🧴</span><label for="tdItemSearch">Items</label></div>
+      <input id="tdItemSearch" class="tin" type="search" autocomplete="off" placeholder="Search products to add, e.g. degreaser" aria-controls="tdItemHits">
+      <div class="hits" id="tdItemHits" hidden></div>
+      <div class="ilines" id="tdItems"></div>
+      <div class="itotals">
+        <label for="tdShip">Shipping $ <input id="tdShip" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Add later"></label>
+        <span>Total <b id="tdTotal">$0.00</b></span>
+      </div>
     </div>
     <div class="q">
       <div class="ql"><span class="qi" aria-hidden="true">👤</span>Who does it?</div>
@@ -460,13 +521,9 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
       </div>
     </div>
     <div class="q">
-      <div class="ql"><span class="qi" aria-hidden="true">📄</span><label for="tdDetails">Details <span class="muted" style="font-weight:400">(optional)</span></label></div>
-      <div class="inrow"><textarea id="tdDetails" placeholder="Anything that helps get it done"></textarea><button type="button" class="iconbtn mic" data-mic="tdDetails" aria-label="Speak the details" title="Speak">🎤</button><button type="button" class="yibtn" data-yi="tdDetails" aria-label="Speak in Yiddish, it will be translated to English" title="Speak Yiddish">🎤 ייִדיש</button></div>
-    </div>
-    <div class="q">
-      <div class="ql"><span class="qi" aria-hidden="true">💬</span><label for="tdNote">Notes</label></div>
+      <div class="ql"><span class="qi" aria-hidden="true">💬</span><label for="tdNote">Activity notes</label></div>
       <ul class="tlog" id="tdLog"></ul>
-      <div class="inrow"><input id="tdNote" autocomplete="off" placeholder="Add a note"><button type="button" class="iconbtn mic" data-mic="tdNote" aria-label="Speak a note" title="Speak">🎤</button><button type="button" class="yibtn" data-yi="tdNote" aria-label="Speak in Yiddish, it will be translated to English" title="Speak Yiddish">🎤 ייִדיש</button><button type="button" class="btn" id="tdNoteBtn" style="padding:14px 18px;font-size:1.05rem">Add</button></div>
+      <div class="inrow"><input id="tdNote" autocomplete="off" placeholder="Add a note"><button type="button" class="btn" id="tdNoteBtn">Add</button></div>
     </div>
   </div>
   <div class="dlg-foot">
@@ -593,6 +650,9 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
   const $ = s => document.querySelector(s);
   function toast(msg, ms, action){
     const t = $('#toast'); t.textContent = msg; t.onclick = null;
+    // An open dialog sits in the browser's top layer; the toast must live inside it to be seen and tapped.
+    const host = document.querySelector('dialog[open]') || document.body;
+    if (t.parentNode !== host) host.append(t);
     t.classList.toggle('has-act', !!action);
     if (action) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'toast-act'; b.textContent = action.label;
@@ -683,7 +743,23 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
 
   const PERSON_KEY = 'ww-task-person';
   try { const v = localStorage.getItem(PERSON_KEY); if (v) taskFilter = v; } catch {}
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const KINDS = {
+    order:{ico:'📦', label:'New order'}, estimate:{ico:'💲', label:'Estimate'}, reminder:{ico:'⏰', label:'Reminder'},
+    install:{ico:'🔧', label:'Installation'}, visit:{ico:'📍', label:'Site visit'}, other:{ico:'📝', label:'Other'}
+  };
+  const hasItems = kind => kind === 'order' || kind === 'estimate';
+  const VENDORS = ['Alpha', 'TCD Parts', 'CCI'];
+  const money2 = n => '$' + (Number(n) || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  // Tasks are titled from their type and customer, e.g. "New order · Kosher Castle".
+  function autoTitle(kind, customer, desc){
+    const k = KINDS[kind]; if (!k) return '';
+    let short = (desc || '').split('\n')[0].trim();
+    if (short.length > 60) short = short.slice(0, 60).replace(/\s+\S*$/, '') + '…';
+    if (customer) return `${k.label} · ${customer}`;
+    if (!short) return k.label;
+    return kind === 'other' ? short : `${k.label}: ${short}`;
+  }
+  const itemsTotal = t => (t.items || []).reduce((s, i) => s + (Number(i.qty) || 0) * (Number(i.price) || 0), 0) + (Number(t.shipping) || 0);
   const STATUS = {requested:'⚪ New', working:'🔵 In process', done:'✅ Completed'};
   const STATUS_WORD = {requested:'New', working:'In process', done:'Completed'};
   function dueInfo(j){
@@ -697,16 +773,19 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
   }
   const avatar = who => who === 'Yosef Yaakov' ? '<span class="av yy" aria-hidden="true">YY</span>' : '<span class="av ros" aria-hidden="true">R</span>';
   function taskCard(j){
-    const d = dueInfo(j), who = whoOf(j);
+    const d = dueInfo(j), who = whoOf(j), t = j.task || {}, k = KINDS[t.kind];
     const act = canWrite
       ? `<select class="tsel s-${esc(j.stage)}" data-tstatus="${esc(j.id)}" aria-label="Status of ${esc(j.nextAction)}">
-          ${['requested','working','done'].map(k=>`<option value="${k}"${j.stage===k?' selected':''}>${STATUS[k]}</option>`).join('')}
+          ${['requested','working','done'].map(s=>`<option value="${s}"${j.stage===s?' selected':''}>${STATUS[s]}</option>`).join('')}
         </select>`
       : `<span class="pill">${STATUS[j.stage] || ''}</span>`;
+    const desc = k && t.details && !(t.kind === 'other' && !j.customer) ? t.details : '';
+    const items = (t.items || []).length;
     return `<div class="tcard ${d.cls}" data-topen="${esc(j.id)}" tabindex="0" role="button" aria-label="Open task ${esc(j.nextAction)}">
       ${avatar(who)}
-      <div><div class="tname">${esc(j.nextAction || 'Task')}</div>
-        <div class="tmeta"><span class="pill ${d.cls}">${d.cls==='late'?'⚠️ ':d.cls==='today'?'⏰ ':d.cls==='done'?'✅ ':'📅 '}${esc(d.txt)}</span>${j.customer ? `<span class="pill">🏢 ${esc(j.customer)}</span>` : ''}<span class="muted" style="font-size:.95rem">${esc(who)}</span></div></div>
+      <div><div class="tname">${k ? `<span aria-hidden="true">${k.ico}</span> ` : ''}${esc(j.nextAction || 'Task')}</div>
+        ${desc ? `<div class="tdesc">${esc(desc)}</div>` : ''}
+        <div class="tmeta"><span class="pill ${d.cls}">${d.cls==='late'?'⚠️ ':d.cls==='today'?'⏰ ':d.cls==='done'?'✅ ':'📅 '}${esc(d.txt)}</span>${j.customer && !k ? `<span class="pill">🏢 ${esc(j.customer)}</span>` : ''}${items ? `<span class="pill">🧴 ${items} item${items===1?'':'s'} · ${money2(itemsTotal(t))}</span>` : ''}<span class="muted" style="font-size:.88rem">${esc(who)}</span></div></div>
       <div class="tacts">${act}</div>
     </div>`;
   }
@@ -834,6 +913,9 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
       <p class="muted" style="margin-top:-4px">Copy this into an email to the office. It updates as jobs change.</p>
       <textarea class="summary" id="sumText" readonly>${esc(summaryText(w))}</textarea>
       <div class="sum-actions"><button class="btn primary" type="button" id="copyBtn">Copy summary</button><a class="btn" id="mailSum" href="${esc(summaryMailto(w))}">✉️ Open in email</a><span class="muted" id="copyMsg"></span></div>
+      <h2>Morning text to Yosef Yaakov</h2>
+      <p class="muted" style="margin-top:-4px">Every morning except Shabbos, he gets a text listing his tasks that are due or late.</p>
+      <div class="sum-actions" style="margin-top:0"><button class="btn" type="button" id="remindBtn">📱 Text him his tasks now</button><span class="muted" id="remindMsg"></span></div>
       <h2>Reliable OS routine for this account</h2>
       <ul class="routine">
         <li><b>Every morning:</b> clear the Needs attention list, log new calls and emails as leads, confirm any vendor orders due.</li>
@@ -1026,6 +1108,13 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
     if (tf) { taskFilter = tf.dataset.tfilter; try { localStorage.setItem(PERSON_KEY, taskFilter); } catch {} renderTasks(); return; }
     const f = e.target.closest('[data-filter]');
     if (f) { filter = f.dataset.filter; renderPipeline(); return; }
+    if (e.target.closest('#remindBtn')) {
+      const b = $('#remindBtn'); b.disabled = true; $('#remindMsg').textContent = 'Sending…';
+      api('/api/remind', {method:'POST'}).then(d => { $('#remindMsg').textContent = d.message; })
+        .catch(err => { if (err.message !== 'signed out') $('#remindMsg').textContent = err.message; })
+        .finally(() => { b.disabled = false; });
+      return;
+    }
     if (e.target.id === 'copyBtn') {
       const ta = $('#sumText'); ta.select();
       const done = () => { $('#copyMsg').textContent = 'Copied. Paste it into your email.'; };
@@ -1058,6 +1147,85 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
     $('#tdLog').innerHTML = log.map(l=>`<li><span class="when">${esc(new Date(l.at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))}${l.byName ? ' · ' + esc(l.byName) : ''}</span>${esc(l.text)}</li>`).join('');
     $('#tdLog').hidden = !log.length;
   }
+  function setKind(kind){
+    tEdit.task.kind = kind;
+    pressed('tdKind', 'data-kind', kind || 'x');
+    const show = hasItems(kind);
+    $('#tdVendorQ').hidden = !show; $('#tdItemsQ').hidden = !show;
+    if (show) loadProducts();
+  }
+  // v is '', one of VENDORS, '__other' (the Other button) or a typed-in vendor name.
+  let tVendor = '';
+  function setVendor(v){
+    const known = VENDORS.includes(v), other = !!v && !known;
+    pressed('tdVendor', 'data-vendor', known ? v : other ? '__other' : 'x');
+    $('#tdVendorOther').hidden = !other;
+    if (other && v !== '__other') $('#tdVendorName').value = v;
+    tVendor = known ? v : '';
+  }
+  const vendorValue = () => $('#tdVendorOther').hidden ? tVendor : $('#tdVendorName').value.trim();
+
+  // ---- items ----
+  let products = null, productsLoading = null, productsFailed = false;
+  function loadProducts(){
+    if (products || productsLoading) return productsLoading;
+    productsFailed = false;
+    productsLoading = api('/api/products').then(d => { products = d.products || []; })
+      .catch(() => { productsFailed = true; }).finally(() => { productsLoading = null; });
+    return productsLoading;
+  }
+  function renderItems(){
+    const items = tEdit.task.items || [];
+    $('#tdItems').innerHTML = items.map((it, i) => `<div class="iline">
+        <div class="iname">${esc(it.name)}${it.desc ? `<small>${esc(it.desc)}</small>` : ''}</div>
+        <label>Qty<input type="number" min="0" step="1" inputmode="numeric" data-iq="${i}" value="${esc(it.qty)}"></label>
+        <label>Price $<input type="number" min="0" step="0.01" inputmode="decimal" data-ip="${i}" value="${it.price === '' || it.price == null ? '' : esc(Number(it.price).toFixed(2))}" placeholder="Price"></label>
+        <span class="itot">${money2((Number(it.qty)||0) * (Number(it.price)||0))}</span>
+        <button type="button" class="ix" data-ix="${i}" aria-label="Remove ${esc(it.name)}">✕</button>
+      </div>`).join('');
+    updateTotal();
+  }
+  function updateTotal(){
+    tEdit.task.shipping = $('#tdShip').value === '' ? '' : Number($('#tdShip').value);
+    $('#tdTotal').textContent = money2(itemsTotal(tEdit.task));
+    document.querySelectorAll('#tdItems .iline').forEach((row, i) => { const it = tEdit.task.items[i]; row.querySelector('.itot').textContent = money2((Number(it.qty)||0) * (Number(it.price)||0)); });
+  }
+  function searchHits(){
+    const q = $('#tdItemSearch').value.trim().toLowerCase(), box = $('#tdItemHits');
+    if (q.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
+    if (!products && !productsFailed) { box.hidden = false; box.innerHTML = '<button type="button" disabled>Loading products…</button>'; loadProducts().then(searchHits); return; }
+    if (!products) { productsFailed = false; loadProducts(); }
+    const words = q.split(/\s+/);
+    const hits = (products || []).filter(p => { const h = (p.n + ' ' + (p.d||'')).toLowerCase(); return words.every(w => h.includes(w)); })
+      .sort((a, b) => (b.n.toLowerCase().startsWith(q) - a.n.toLowerCase().startsWith(q))).slice(0, 8);
+    box.innerHTML = hits.map(p => `<button type="button" data-padd="${esc(p.n)}"><span>${esc(p.n)}${p.d ? `<small>${esc(p.d)}</small>` : ''}</span><span class="hp">${p.p != null ? money2(p.p) : 'No price'}</span></button>`).join('')
+      + `<button type="button" data-padd-new="1"><span>＋ Add “${esc($('#tdItemSearch').value.trim())}”<small>Not on the list</small></span></button>`;
+    box.hidden = false;
+  }
+  function addItem(name, isNew){
+    const p = !isNew && products ? products.find(x => x.n === name) : null;
+    tEdit.task.items = tEdit.task.items || [];
+    tEdit.task.items.push({name, desc: p && p.d ? p.d : '', qty: 1, price: p && p.p != null ? p.p : ''});
+    // Fill in the vendor from the product's usual supplier, if it's one of ours.
+    if (p && p.v && !vendorValue()) { const v = VENDORS.find(x => p.v.toLowerCase().startsWith(x.toLowerCase())); if (v) setVendor(v); }
+    $('#tdItemSearch').value = ''; searchHits(); renderItems();
+    const qty = document.querySelector(`#tdItems [data-iq="${tEdit.task.items.length-1}"]`); if (qty) qty.focus();
+  }
+  $('#tdItemSearch').addEventListener('input', searchHits);
+  $('#tdItemSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); const f = $('#tdItemHits button:not([disabled])'); if (f) f.click(); } });
+  $('#tdItemHits').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.paddNew) addItem($('#tdItemSearch').value.trim(), true); else if (b.dataset.padd) addItem(b.dataset.padd);
+  });
+  $('#tdItems').addEventListener('input', e => {
+    const el = e.target, items = tEdit.task.items;
+    if (el.dataset.iq) items[+el.dataset.iq].qty = el.value === '' ? '' : Number(el.value);
+    if (el.dataset.ip) items[+el.dataset.ip].price = el.value === '' ? '' : Number(el.value);
+    updateTotal();
+  });
+  $('#tdItems').addEventListener('click', e => { const b = e.target.closest('[data-ix]'); if (!b) return; tEdit.task.items.splice(+b.dataset.ix, 1); renderItems(); });
+  $('#tdShip').addEventListener('input', updateTotal);
+
   function openTask(id){
     const src = id ? jobs.find(j=>j.id===id) : null;
     tOrig = src ? JSON.parse(JSON.stringify(src)) : null;
@@ -1067,29 +1235,36 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
       task:{assignee: taskFilter === 'Reliable OS' ? 'Reliable OS' : 'Yosef Yaakov', requestedBy: myName || ''}
     };
     tEdit.task = tEdit.task || {};
+    tEdit.task.items = (tEdit.task.items || []).map(i => ({...i}));
     tPending = []; tYiddish = [];
-    $('#tdTitle').textContent = src ? 'Task' : 'New task';
-    $('#tdName').value = tEdit.nextAction || '';
+    $('#tdTitle').textContent = src ? (src.nextAction || 'Task') : 'New task';
     $('#tdDetails').value = tEdit.task.details || '';
     const cur = (tEdit.customer || '').trim(), list = allCustomers();
     const match = list.find(n => n.toLowerCase() === cur.toLowerCase());
-    $('#tdCustSel').innerHTML = '<option value="">— No customer —</option>' + list.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('') + '<option value="__other">＋ Other (not on the list)</option>';
+    $('#tdCustSel').innerHTML = '<option value="">— No customer —</option><option value="__other">＋ Add new customer</option>' + list.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
     $('#tdCustSel').value = match || (cur ? '__other' : '');
     $('#tdCust').value = match ? '' : cur;
     $('#tdCustOther').hidden = $('#tdCustSel').value !== '__other';
+    $('#tdVendorName').value = '';
+    setVendor(tEdit.vendor || '');
+    setKind(tEdit.task.kind || '');
+    $('#tdItemSearch').value = ''; searchHits();
+    $('#tdShip').value = tEdit.task.shipping ?? '';
+    renderItems();
     $('#tdDate').value = tEdit.nextDue || '';
     $('#tdNote').value = '';
     pressed('tdWho', 'data-who', whoOf(tEdit));
     pressed('tdStatus', 'data-status', tEdit.stage);
     syncWhen(); renderTLog();
     $('#tdDel').hidden = !src; $('#tdDel').textContent = 'Delete'; $('#tdDel').dataset.armed = '';
-    ['#tdSave','#tdDel','#tdNoteBtn','#tdName','#tdDetails','#tdCustSel','#tdCust','#tdDate','#tdNote'].forEach(s => $(s).disabled = !canWrite);
-    document.querySelectorAll('#tdlg .choices button, #tdlg .mic, #tdlg .yibtn').forEach(b => b.disabled = !canWrite);
-    document.querySelectorAll('#tdlg .yibtn').forEach(b => b.hidden = !canRecord);
-    document.querySelectorAll('#tdlg .mic').forEach(b => b.hidden = !SR);
+    ['#tdSave','#tdDel','#tdNoteBtn','#tdDetails','#tdCustSel','#tdCust','#tdDate','#tdNote','#tdItemSearch','#tdShip','#tdVendorName'].forEach(s => $(s).disabled = !canWrite);
+    document.querySelectorAll('#tdlg .choices button, #tdlg .vbtn').forEach(b => b.disabled = !canWrite);
+    document.querySelectorAll('#tdlg .vbtn').forEach(b => b.hidden = !canRecord);
     tdlg.showModal();
-    setTimeout(()=>{ if (!src) $('#tdName').focus(); }, 30);
+    $('#tdlg .dlg-body').scrollTop = 0;
   }
+  $('#tdKind').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (b) setKind(b.dataset.kind); });
+  $('#tdVendor').addEventListener('click', e => { const b = e.target.closest('[data-vendor]'); if (!b) return; setVendor(b.dataset.vendor); if (b.dataset.vendor === '__other') setTimeout(()=>$('#tdVendorName').focus(), 30); });
   $('#tdWho').addEventListener('click', e => { const b = e.target.closest('[data-who]'); if (!b) return; tEdit.task.assignee = b.dataset.who; pressed('tdWho','data-who',b.dataset.who); });
   $('#tdWhen').addEventListener('click', e => { const b = e.target.closest('[data-when]'); if (!b) return; $('#tdDate').value = addDays(+b.dataset.when); syncWhen(); });
   $('#tdDate').addEventListener('change', syncWhen);
@@ -1103,13 +1278,19 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
   $('#tdNoteBtn').addEventListener('click', addTaskNote);
   $('#tdNote').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTaskNote(); } });
   async function saveTask(){
-    const name = $('#tdName').value.trim();
-    if (!name) { $('#tdName').focus(); toast('Say or type what needs to be done'); return; }
+    const j = tEdit, kind = j.task.kind;
+    const details = $('#tdDetails').value.trim();
+    const legacyName = tOrig && !(tOrig.task||{}).kind ? tOrig.nextAction : '';
+    if (!kind && !legacyName) { $('#tdKind button').focus(); toast('Pick the task type first'); return; }
     if ($('#tdNote').value.trim()) addTaskNote();
-    const j = tEdit;
-    j.nextAction = name;
-    j.task.details = $('#tdDetails').value.trim();
+    j.task.details = details;
     j.customer = $('#tdCustSel').value === '__other' ? $('#tdCust').value.trim() : $('#tdCustSel').value;
+    j.nextAction = kind ? autoTitle(kind, j.customer, details) : legacyName;
+    if (hasItems(kind)) {
+      j.vendor = vendorValue();
+      j.task.items = (j.task.items || []).filter(i => i.name);
+      j.task.shipping = $('#tdShip').value === '' ? '' : Number($('#tdShip').value);
+    } else { delete j.vendor; delete j.task.items; delete j.task.shipping; }
     j.nextDue = $('#tdDate').value || '';
     j.task.assignee = whoOf(j);
     j.stageDates = j.stageDates || {};
@@ -1125,7 +1306,7 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
   }
   $('#tdSave').addEventListener('click', saveTask);
   $('#tdCancel').addEventListener('click', ()=>tdlg.close());
-  tdlg.addEventListener('close', ()=>yiAbort());
+  tdlg.addEventListener('close', ()=>voiceAbort());
   $('#tdClose').addEventListener('click', ()=>tdlg.close());
   $('#tdDel').addEventListener('click', async ()=>{
     const b = $('#tdDel');
@@ -1146,10 +1327,13 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
       else if (Date.now() - mergedAt > 1000) toast(STATUS[stage], 8000, {label:'↩ Undo', fn: () => setTaskStatus(id, from, {undo:true})});
     } catch { renderTasks(); }
   }
-  // Yiddish voice: record WAV, server transcribes + translates to English
+
+  // ---------- voice: English or Yiddish, written into the description ----------
+  // Both languages record WAV in the browser and go to /api/yiddish (Gemini). This works the
+  // same on every phone, unlike the browser's built-in speech typing.
   const canRecord = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && (window.AudioContext || window.webkitAudioContext));
-  const YI_LABEL = '🎤 ייִדיש', YI_MAX = 90;
-  let yi = null;
+  const VOICE_LABEL = {en:'🎤 English', yi:'🎤 ייִדיש'}, VOICE_MAX = 90;
+  let rec = null;
   function encodeWav(chunks, inRate){
     const len = chunks.reduce((n,c)=>n+c.length,0), data = new Float32Array(len);
     let o = 0; for (const c of chunks){ data.set(c,o); o += c.length; }
@@ -1168,70 +1352,68 @@ details.tgroup[open] > summary::before{transform:rotate(90deg)}
     return new Uint8Array(buf);
   }
   function toB64(bytes){ let s = ''; for (let i=0;i<bytes.length;i+=0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000)); return btoa(s); }
-  function yiRelease(r){
+  const peakOf = chunks => { let m = 0; for (const c of chunks) for (let i = 0; i < c.length; i += 16) { const a = Math.abs(c[i]); if (a > m) m = a; } return m; };
+  function voiceRelease(r){
     clearInterval(r.timer);
     try { r.proc.disconnect(); r.src.disconnect(); } catch {}
     r.stream.getTracks().forEach(t=>t.stop());
     try { r.ctx.close(); } catch {}
   }
-  function yiAbort(){ if (!yi) return; const r = yi; yi = null; yiRelease(r); r.btn.classList.remove('listening'); r.btn.textContent = YI_LABEL; }
-  async function yiStart(btn){
-    if (rec) rec.stop();
-    // Create and resume the audio context inside the tap itself; iPhones block audio started after a wait.
+  function resetVoiceBtns(){ document.querySelectorAll('#tdlg .vbtn').forEach(b => { b.classList.remove('listening'); b.textContent = VOICE_LABEL[b.dataset.voice]; b.disabled = !canWrite; }); }
+  function voiceAbort(){ if (!rec) return; const r = rec; rec = null; voiceRelease(r); resetVoiceBtns(); }
+  async function voiceStart(btn){
+    // Create and resume the audio context inside the tap itself; iPhones record silence otherwise.
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const resumed = ctx.resume().catch(()=>{});
-    btn.disabled = true;
+    document.querySelectorAll('#tdlg .vbtn').forEach(b => b.disabled = true);
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({audio:{channelCount:1, echoCancellation:true, noiseSuppression:true}}); }
-    catch { btn.disabled = false; try { ctx.close(); } catch {} toast('Allow the microphone for this site, then try again.', 6000); return; }
-    finally { btn.disabled = !canWrite; }
+    catch { try { ctx.close(); } catch {} resetVoiceBtns(); toast('Allow the microphone for this site, then try again.', 6000); return; }
     await resumed;
+    // iPhones can pause the audio while the mic permission prompt is up. Wake it again.
+    if (ctx.state !== 'running') { try { await ctx.resume(); } catch {} }
     const src = ctx.createMediaStreamSource(stream);
     const proc = ctx.createScriptProcessor(4096, 1, 1);
     const chunks = [];
     proc.onaudioprocess = e => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
     src.connect(proc); proc.connect(ctx.destination);
-    yi = {btn, field: document.getElementById(btn.dataset.yi), ctx, stream, src, proc, chunks, rate: ctx.sampleRate, t0: Date.now()};
-    btn.classList.add('listening'); btn.textContent = '⏹ 0s';
-    yi.timer = setInterval(()=>{ if (!yi) return; const s = Math.floor((Date.now()-yi.t0)/1000); yi.btn.textContent = '⏹ ' + s + 's'; if (s >= YI_MAX) yiStop(); }, 250);
+    rec = {btn, lang: btn.dataset.voice, ctx, stream, src, proc, chunks, rate: ctx.sampleRate, t0: Date.now()};
+    btn.disabled = false; btn.classList.add('listening'); btn.textContent = '⏹ Stop · 0s';
+    rec.timer = setInterval(()=>{ if (!rec) return; const s = Math.floor((Date.now()-rec.t0)/1000); rec.btn.textContent = '⏹ Stop · ' + s + 's'; if (s >= VOICE_MAX) voiceStop(); }, 250);
   }
-  async function yiStop(){
-    if (!yi) return;
-    const r = yi; yi = null; yiRelease(r);
+  async function voiceStop(){
+    if (!rec) return;
+    const r = rec; rec = null; voiceRelease(r);
     const secs = (Date.now() - r.t0) / 1000;
-    r.btn.classList.remove('listening');
-    if (secs < 1) { r.btn.textContent = YI_LABEL; toast('Too short. Tap, speak, then tap again to stop.', 5000); return; }
-    if (!r.chunks.length) { r.btn.textContent = YI_LABEL; toast('No sound was picked up. Check the microphone and try again.', 6000); return; }
-    r.btn.textContent = '⏳'; r.btn.disabled = true;
+    if (secs < 1) { resetVoiceBtns(); toast('Too short. Tap, speak, then tap Stop.', 5000); return; }
+    if (!r.chunks.length || peakOf(r.chunks) < 0.003) { resetVoiceBtns(); toast('No sound was picked up. Check the microphone and try again.', 6000); return; }
+    sendVoice(toB64(encodeWav(r.chunks, r.rate)), r.lang);
+  }
+  async function sendVoice(audio, lang){
+    const btns = document.querySelectorAll('#tdlg .vbtn');
+    btns.forEach(b => { b.disabled = true; b.classList.remove('listening'); if (b.dataset.voice === lang) b.textContent = '⏳ Writing…'; });
+    const ac = new AbortController(), timer = setTimeout(() => ac.abort(), 65000);
+    const retry = {label:'↻ Try again', fn: () => { if (tdlg.open) sendVoice(audio, lang); }};
     try {
-      const d = await api('/api/yiddish', {method:'POST', body: JSON.stringify({audio: toB64(encodeWav(r.chunks, r.rate)), mime:'audio/wav'})});
+      const d = await api('/api/yiddish', {method:'POST', body: JSON.stringify({audio, mime:'audio/wav', lang}), signal: ac.signal});
+      if (!tdlg.open) return;
       if (!d.english) toast('Couldn’t make out any words. Try again.', 5000);
       else {
-        r.field.value = r.field.value ? r.field.value.replace(/\s*$/, ' ') + d.english : d.english;
+        const f = $('#tdDetails');
+        f.value = f.value.trim() ? f.value.replace(/\s*$/, ' ') + d.english : d.english;
         if (d.yiddish) tYiddish.push(d.yiddish);
-        toast('✓ Translated to English');
+        toast(lang === 'yi' ? '✓ Written in English' : '✓ Added');
       }
-    } catch (e) { if (e.message !== 'signed out') toast(e.message || 'Couldn’t translate. Try again.', 7000); }
-    finally { r.btn.textContent = YI_LABEL; r.btn.disabled = !canWrite; }
+    } catch (e) {
+      if (e.message === 'signed out' || !tdlg.open) return;
+      const msg = e.name === 'AbortError' ? 'That took too long.' : (e.message && e.message !== 'Failed to fetch' ? e.message : 'Couldn’t reach the server.');
+      toast(msg, 12000, retry);
+    } finally { clearTimeout(timer); resetVoiceBtns(); }
   }
   document.addEventListener('click', e => {
-    const b = e.target.closest('[data-yi]'); if (!b || !canRecord) return;
-    if (yi) { if (yi.btn === b) yiStop(); return; }
-    yiStart(b);
-  });
-  // Voice typing
-  let rec = null, recBtn = null;
-  document.addEventListener('click', e => {
-    const b = e.target.closest('[data-mic]'); if (!b || !SR) return;
-    if (yi) return;
-    if (rec) { rec.stop(); return; }
-    const field = document.getElementById(b.dataset.mic);
-    rec = new SR(); rec.lang = 'en-US'; rec.interimResults = false; rec.maxAlternatives = 1;
-    recBtn = b; b.classList.add('listening'); b.textContent = '⏹';
-    rec.onresult = ev => { const t = ev.results[0][0].transcript; field.value = field.value ? field.value.replace(/\s*$/, ' ') + t : t.charAt(0).toUpperCase() + t.slice(1); };
-    rec.onerror = () => toast('Couldn’t hear that. Try again.');
-    rec.onend = () => { recBtn.classList.remove('listening'); recBtn.textContent = '🎤'; rec = null; };
-    try { rec.start(); } catch { rec = null; b.classList.remove('listening'); b.textContent = '🎤'; }
+    const b = e.target.closest('[data-voice]'); if (!b || !canRecord || b.disabled) return;
+    if (rec) { if (rec.btn === b) voiceStop(); return; }
+    voiceStart(b);
   });
 
   // ---------- sign in ----------

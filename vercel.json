@@ -1,4 +1,10 @@
 {
+  "functions": {
+    "api/yiddish.js": { "maxDuration": 60 }
+  },
+  "crons": [
+    { "path": "/api/remind", "schedule": "0 12 * * 0-5" }
+  ],
   "headers": [
     { "source": "/(.*)", "headers": [
       { "key": "X-Robots-Tag", "value": "noindex, nofollow" },

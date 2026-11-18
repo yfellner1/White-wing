@@ -16,9 +16,6 @@ function parseCSV(text) {
   return rows.filter(r => r.some(Boolean));
 }
 
-// Accounting entries that aren't things you sell.
-const JUNK = /^(PmntDiscount_|Bad Debt|Bank Charge|Chargeback|.*Sales Tax|Credit Card Fee|Discount|dic$|Owners Draw|QB charge|Reimbursment|Retuned|Write-?Off|Documents$)/i;
-
 const file = process.argv[2];
 if (!file) { console.error('Usage: node scripts/import-products.mjs <csv>'); process.exit(1); }
 const [head, ...rows] = parseCSV(readFileSync(file, 'utf8').replace(/^﻿/, ''));
@@ -28,8 +25,7 @@ const seen = new Set();
 const out = [];
 for (const r of rows) {
   const n = (r[iName] || '').trim();
-  if (!n || JUNK.test(n) || seen.has(n.toLowerCase())) continue;
-  seen.add(n.toLowerCase());
+  if (!n) continue;
   const item = { n };
   const d = (r[iDesc] || '').trim();
   if (d && d.toLowerCase() !== n.toLowerCase()) item.d = d;
@@ -37,6 +33,11 @@ for (const r of rows) {
   if (Number.isFinite(p)) item.p = p;
   const v = (r[iSup] || '').trim();
   if (v) item.v = v;
+  // Every item is kept. Only rows that are exact copies (same name, description, price and supplier)
+  // are skipped; items that share a name but differ in price are both kept.
+  const key = JSON.stringify(item).toLowerCase();
+  if (seen.has(key)) continue;
+  seen.add(key);
   out.push(item);
 }
 out.sort((a, b) => a.n.localeCompare(b.n, undefined, { sensitivity: 'base' }));

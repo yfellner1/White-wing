@@ -31,7 +31,7 @@ Live: https://white-wing-tracker.vercel.app (password protected)
   - Models are tried in order, with a fallback list, because Google retires and overloads models often. A 503 or 429 moves straight to the next model.
   - **Timeouts:** each try is capped at 20s and the whole request at 50s (`maxDuration` is 60 in `vercel.json`). Before this, overloaded Gemini calls hung until Vercel's 300s limit.
   - Set the env var `GEMINI_MODEL` to put a model first.
-- `api/products.js`: signed-in `GET` returns White Wing's product list for the item picker. The data is in `api/_products.js`, generated from the QuickBooks export by `node scripts/import-products.mjs <ProductsServicesList.csv>`, which drops accounting entries like "Bank Charge". Fields: `n` name, `d` sales description, `p` price, `v` preferred supplier. Re-run the script when the price list changes.
+- `api/products.js`: signed-in `GET` returns White Wing's product list for the item picker. The data is in `api/_products.js`, generated from the QuickBooks export by `node scripts/import-products.mjs <ProductsServicesList.csv>`. It keeps every item and skips only rows that are exact copies; items with the same name but different prices are both kept. Items with no price come in blank, and their price can be filled in on the task. Fields: `n` name, `d` sales description, `p` price, `v` preferred supplier. Re-run the script when the price list changes.
 - `api/remind.js`: the morning text to Yosef Yaakov, sent through Twilio, listing his open tasks that are due today or late (dates in America/New_York).
   - A Vercel cron calls `GET` at 12:00 UTC Sunday to Friday (`vercel.json`; Hobby crons fire sometime within that hour). It's authorized by `Authorization: Bearer $CRON_SECRET`.
   - Signed-in staff can `POST` to send it now; this is the button on the Weekly summary page.
@@ -47,6 +47,7 @@ Live: https://white-wing-tracker.vercel.app (password protected)
 - `task.kind` is `order`, `estimate`, `reminder`, `install`, `visit` or `other`.
   - Tasks have no name box. `nextAction` (the title) is built by `autoTitle()` from the kind and customer, e.g. "New order · Kosher Castle". With no customer it's built from the description, e.g. "Reminder: Call the bank".
   - Older tasks with no `kind` keep their typed title.
+  - The item picker shows the whole product list when its search box is tapped; typing narrows it down (60 matches shown at most). The totals box shows the items subtotal, shipping, the order total, and a note when items have no price yet (those count as $0).
   - Order and estimate tasks also have `vendor` (Alpha, TCD Parts, CCI or a typed name), `task.items[{name, desc, qty, price}]` with list prices that can be edited, and `task.shipping` (left blank until known).
 - `stageDates[stage]` records when the job entered each stage. These dates drive the "stuck too long" flags (`limit` in `STAGES`).
 - `nextAction` and `nextDue` hold the next step and its due date. For tasks, `nextAction` is the task name.

@@ -270,10 +270,20 @@ textarea.tin{min-height:90px;resize:vertical}
 .iline .itot{text-align:right;font-size:.95rem}
 .iline .ix{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--muted)}
 @media (max-width:560px){.iline{grid-template-columns:1fr 64px 92px 36px}.iline .itot{display:none}}
-.itotals{display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:.95rem}
-.itotals label{display:flex;align-items:center;gap:8px;color:var(--muted)}
-.itotals input{width:110px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
-.itotals b{font-size:1.05rem}
+.hits{max-height:320px;overflow-y:auto}
+.hits > *{flex:0 0 auto}
+.hits .hcount{padding:8px 14px;font-size:.82rem;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
+.itotals{margin:12px 0 0 auto;max-width:320px;display:flex;flex-direction:column;gap:6px;font-size:.95rem;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.itotals .trow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.itotals .trow > :first-child{color:var(--muted)}
+.itotals .shipin{display:flex;align-items:center;gap:4px}
+.itotals input{width:110px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-align:right}
+.itotals .grand{border-top:1px solid var(--line);padding-top:8px;margin-top:2px}
+.itotals .grand > :first-child{color:var(--ink);font-weight:700}
+.itotals .grand b{font-size:1.1rem}
+.itotals .tnote{font-size:.82rem;color:var(--warn)}
+.itotals .tnote[hidden],.itotals[hidden]{display:none}
+.iline input.noprice{border-color:#EBC77F;background:var(--warn-bg)}
 
 </style>
 </head>
@@ -488,12 +498,14 @@ textarea.tin{min-height:90px;resize:vertical}
     </div>
     <div class="q" id="tdItemsQ" hidden>
       <div class="ql"><span class="qi" aria-hidden="true">🧴</span><label for="tdItemSearch">Items</label></div>
-      <input id="tdItemSearch" class="tin" type="search" autocomplete="off" placeholder="Search products to add, e.g. degreaser" aria-controls="tdItemHits">
+      <input id="tdItemSearch" class="tin" type="search" autocomplete="off" placeholder="Tap to see all products, or type to search" aria-controls="tdItemHits">
       <div class="hits" id="tdItemHits" hidden></div>
       <div class="ilines" id="tdItems"></div>
-      <div class="itotals">
-        <label for="tdShip">Shipping $ <input id="tdShip" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Add later"></label>
-        <span>Total <b id="tdTotal">$0.00</b></span>
+      <div class="itotals" id="tdTotals">
+        <div class="trow"><span>Items</span><span id="tdSub">$0.00</span></div>
+        <div class="trow"><label for="tdShip">Shipping</label><span class="shipin">$ <input id="tdShip" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Add later"></span></div>
+        <div class="trow grand"><span>Order total</span><b id="tdTotal">$0.00</b></div>
+        <div class="tnote" id="tdNoPrice" hidden></div>
       </div>
     </div>
     <div class="q">
@@ -1179,39 +1191,54 @@ textarea.tin{min-height:90px;resize:vertical}
     $('#tdItems').innerHTML = items.map((it, i) => `<div class="iline">
         <div class="iname">${esc(it.name)}${it.desc ? `<small>${esc(it.desc)}</small>` : ''}</div>
         <label>Qty<input type="number" min="0" step="1" inputmode="numeric" data-iq="${i}" value="${esc(it.qty)}"></label>
-        <label>Price $<input type="number" min="0" step="0.01" inputmode="decimal" data-ip="${i}" value="${it.price === '' || it.price == null ? '' : esc(Number(it.price).toFixed(2))}" placeholder="Price"></label>
+        <label>Price $<input type="number" min="0" step="0.01" inputmode="decimal" data-ip="${i}" value="${it.price === '' || it.price == null ? '' : esc(Number(it.price).toFixed(2))}" placeholder="Add price" class="${it.price === '' || it.price == null ? 'noprice' : ''}"></label>
         <span class="itot">${money2((Number(it.qty)||0) * (Number(it.price)||0))}</span>
         <button type="button" class="ix" data-ix="${i}" aria-label="Remove ${esc(it.name)}">✕</button>
       </div>`).join('');
     updateTotal();
   }
   function updateTotal(){
-    tEdit.task.shipping = $('#tdShip').value === '' ? '' : Number($('#tdShip').value);
-    $('#tdTotal').textContent = money2(itemsTotal(tEdit.task));
+    const t = tEdit.task, items = t.items || [];
+    t.shipping = $('#tdShip').value === '' ? '' : Number($('#tdShip').value);
+    $('#tdSub').textContent = money2(itemsTotal({items}));
+    $('#tdTotal').textContent = money2(itemsTotal(t));
+    $('#tdTotals').hidden = !items.length;
+    const missing = items.filter(i => i.price === '' || i.price == null).length;
+    $('#tdNoPrice').hidden = !missing;
+    $('#tdNoPrice').textContent = missing ? `${missing} item${missing===1?' has':'s have'} no price yet, so ${missing===1?'it isn’t':'they aren’t'} in the total.` : '';
+    document.querySelectorAll('#tdItems [data-ip]').forEach(inp => inp.classList.toggle('noprice', inp.value === ''));
     document.querySelectorAll('#tdItems .iline').forEach((row, i) => { const it = tEdit.task.items[i]; row.querySelector('.itot').textContent = money2((Number(it.qty)||0) * (Number(it.price)||0)); });
   }
   function searchHits(){
-    const q = $('#tdItemSearch').value.trim().toLowerCase(), box = $('#tdItemHits');
-    if (q.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
+    const raw = $('#tdItemSearch').value.trim(), q = raw.toLowerCase(), box = $('#tdItemHits');
+    if (!q && document.activeElement !== $('#tdItemSearch')) { box.hidden = true; box.innerHTML = ''; return; }
     if (!products && !productsFailed) { box.hidden = false; box.innerHTML = '<button type="button" disabled>Loading products…</button>'; loadProducts().then(searchHits); return; }
     if (!products) { productsFailed = false; loadProducts(); }
-    const words = q.split(/\s+/);
-    const hits = (products || []).filter(p => { const h = (p.n + ' ' + (p.d||'')).toLowerCase(); return words.every(w => h.includes(w)); })
-      .sort((a, b) => (b.n.toLowerCase().startsWith(q) - a.n.toLowerCase().startsWith(q))).slice(0, 8);
-    box.innerHTML = hits.map(p => `<button type="button" data-padd="${esc(p.n)}"><span>${esc(p.n)}${p.d ? `<small>${esc(p.d)}</small>` : ''}</span><span class="hp">${p.p != null ? money2(p.p) : 'No price'}</span></button>`).join('')
-      + `<button type="button" data-padd-new="1"><span>＋ Add “${esc($('#tdItemSearch').value.trim())}”<small>Not on the list</small></span></button>`;
+    // Empty search shows the whole list to scroll through; typing narrows it down.
+    const words = q.split(/\s+/).filter(Boolean), all = products || [];
+    const idx = all.map((p, i) => i).filter(i => { const p = all[i], h = (p.n + ' ' + (p.d||'') + ' ' + (p.v||'')).toLowerCase(); return words.every(w => h.includes(w)); });
+    if (q) idx.sort((a, b) => (all[b].n.toLowerCase().startsWith(q) - all[a].n.toLowerCase().startsWith(q)));
+    const shown = q ? idx.slice(0, 60) : idx;
+    const count = q ? `${idx.length} match${idx.length===1?'':'es'}${idx.length > shown.length ? `, showing the first ${shown.length}. Type more to narrow it down.` : ''}` : `All ${all.length} products. Type to search.`;
+    box.innerHTML = `<div class="hcount">${esc(count)}</div>`
+      + (q ? `<button type="button" data-padd-new="1"><span>＋ Add “${esc(raw)}”<small>Not on the list</small></span></button>` : '')
+      + shown.map(i => { const p = all[i]; return `<button type="button" data-padd="${i}"><span>${esc(p.n)}${p.d || p.v ? `<small>${esc([p.d, p.v].filter(Boolean).join(' · '))}</small>` : ''}</span><span class="hp">${p.p != null ? money2(p.p) : 'No price'}</span></button>`; }).join('');
     box.hidden = false;
   }
   function addItem(name, isNew){
-    const p = !isNew && products ? products.find(x => x.n === name) : null;
+    const p = !isNew && products ? products[+name] : null;
+    if (p) name = p.n;
     tEdit.task.items = tEdit.task.items || [];
     tEdit.task.items.push({name, desc: p && p.d ? p.d : '', qty: 1, price: p && p.p != null ? p.p : ''});
     // Fill in the vendor from the product's usual supplier, if it's one of ours.
     if (p && p.v && !vendorValue()) { const v = VENDORS.find(x => p.v.toLowerCase().startsWith(x.toLowerCase())); if (v) setVendor(v); }
-    $('#tdItemSearch').value = ''; searchHits(); renderItems();
+    $('#tdItemSearch').value = ''; $('#tdItemHits').hidden = true; renderItems();
     const qty = document.querySelector(`#tdItems [data-iq="${tEdit.task.items.length-1}"]`); if (qty) qty.focus();
   }
   $('#tdItemSearch').addEventListener('input', searchHits);
+  $('#tdItemSearch').addEventListener('focus', searchHits);
+  // Close the list when tapping elsewhere in the form (but not when tapping a product in it).
+  tdlg.addEventListener('pointerdown', e => { if (!e.target.closest('#tdItemHits, #tdItemSearch')) { $('#tdItemHits').hidden = true; } });
   $('#tdItemSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); const f = $('#tdItemHits button:not([disabled])'); if (f) f.click(); } });
   $('#tdItemHits').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;

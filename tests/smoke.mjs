@@ -98,8 +98,12 @@ sel.value = 'Kosher Castle'; sel.dispatchEvent(new window.Event('change', { bubb
 $('#tdDetails').value = 'They need it before Friday';
 // Search the product list and add an item with its list price
 const search = $('#tdItemSearch');
+assert.equal($('#tdTotals').hidden, true, 'totals hidden until an item is added');
+search.focus(); search.dispatchEvent(new window.Event('focus')); await tick(80);
+assert.match($('#tdItemHits .hcount').textContent, new RegExp(`All ${PRODUCTS.length} products`), 'tapping the search shows every product');
+assert.equal(d.querySelectorAll('#tdItemHits [data-padd]').length, PRODUCTS.length);
 search.value = 'wallop 5 gal'; search.dispatchEvent(new window.Event('input', { bubbles: true })); await tick(80);
-const hit = d.querySelector('#tdItemHits [data-padd="#501 Wallop 5 Gal PL"]');
+const hit = [...d.querySelectorAll('#tdItemHits [data-padd]')].find(b => b.textContent.startsWith('#501 Wallop 5 Gal PL'));
 assert.ok(hit, 'product search finds the item');
 hit.click(); await tick();
 assert.ok(d.querySelector('[data-vendor="Alpha"]').getAttribute('aria-pressed') === 'true', 'vendor filled from the product');
@@ -111,6 +115,15 @@ search.value = 'Custom bracket'; search.dispatchEvent(new window.Event('input', 
 d.querySelector('#tdItemHits [data-padd-new]').click(); await tick();
 assert.equal($('#tdShip').value, '', 'shipping starts blank');
 assert.equal($('#tdTotal').textContent, '$170.00');
+assert.match($('#tdNoPrice').textContent, /1 item has no price yet/, 'flags items with no price');
+// Give the custom item a price, then add shipping: the order total includes both
+const p2 = d.querySelector('#tdItems [data-ip="1"]'); p2.value = '12.50'; p2.dispatchEvent(new window.Event('input', { bubbles: true }));
+assert.equal($('#tdNoPrice').hidden, true);
+$('#tdShip').value = '20'; $('#tdShip').dispatchEvent(new window.Event('input', { bubbles: true }));
+assert.equal($('#tdSub').textContent, '$182.50');
+assert.equal($('#tdTotal').textContent, '$202.50');
+p2.value = ''; p2.dispatchEvent(new window.Event('input', { bubbles: true }));
+$('#tdShip').value = ''; $('#tdShip').dispatchEvent(new window.Event('input', { bubbles: true }));
 $('#tdSave').click(); await tick(100);
 assert.equal(store.length, 1);
 assert.equal(store[0].customer, 'Kosher Castle');
